@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Évaluation boutique TRADEX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand:    #E31E24;
+    --brand-dk: #B0171B;
+    --ink:      #111827;
+    --muted:    #6E6E72;
+    --bg:       #F7F8FA;
+    --ok:       #16A34A;
+    --err:      #DC2626;
+    --ring:     #FCA5A5;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: Poppins, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  button, select, input, textarea { font-family: inherit; }
+  .wrap { max-width: 760px; margin: auto; padding: 24px; }
+  .card {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 16px 32px rgba(0,0,0,.06);
+    padding: 24px;
+    background-image: linear-gradient(180deg,#FFF 0%,#FFF5F5 100%);
+  }
+  .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .header-logo img { max-width:180px; height:auto; display:block; }
+  .brand-title { display:flex; align-items:center; gap:.5rem; margin:.2rem 0 .8rem; }
+  .brand-title h1 { font-size:1.35rem; }
+  .badge { background:#FEE2E2; color:#7F1D1D; border-radius:999px; padding:3px 10px; font-weight:700; font-size:.8rem; white-space:nowrap; }
+  label { display:block; font-weight:600; margin:.6rem 0 .35rem; }
+  select, input[type="date"], input[type="tel"], input[type="text"], textarea {
+    width:100%; padding:12px 14px; border:1px solid #E5E7EB; border-radius:12px;
+    background:#fff; outline:none;
+    transition:box-shadow .15s,border-color .15s,background-color .15s;
+    font-size:1rem;
+  }
+  select:focus, input:focus, textarea:focus {
+    border-color:var(--ring); box-shadow:0 0 0 3px rgba(252,165,165,.35);
+  }
+  textarea { min-height:100px; resize:vertical; }
+  .grid { display:grid; gap:12px; }
+  @media (min-width:720px) { .grid-2 { grid-template-columns:1fr 1fr; } }
+  .section-title { margin-top:6px; margin-bottom:4px; font-weight:700; }
+  .hint { color:var(--muted); font-size:.92rem; }
+  .divider { height:1px; background:#EEF2F7; margin:8px 0 12px; }
+  .crit {
+    display:flex; align-items:center; justify-content:space-between;
+    border:1px solid #EEF2F7; border-radius:12px;
+    padding:12px; background:#fff; gap:8px;
+  }
+  .crit > div:first-child { font-weight:600; flex:1; }
+  .stars { display:inline-flex; gap:4px; align-items:center; flex-shrink:0; }
+  .star {
+    font-size:28px; cursor:pointer; line-height:1;
+    border:none; background:none; padding:2px;
+    transition:transform .12s ease; color:#ccc;
+  }
+  .star::before { content:"☆"; }
+  .star.active::before { content:"★"; color:var(--brand); }
+  .star:hover::before { color:var(--brand-dk); }
+  .star.pop { transform:scale(1.2); }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center; }
+  button { border:0; border-radius:12px; padding:12px 16px; font-weight:700; cursor:pointer; font-size:1rem; }
+  .primary { background:var(--brand); color:#fff; display:inline-flex; align-items:center; gap:10px; }
+  .primary:hover { background:var(--brand-dk); }
+  .primary:disabled { opacity:.7; cursor:not-allowed; }
+  .lang-btn { border:1px solid #E5E7EB; background:#fff; border-radius:12px; padding:16px; cursor:pointer; font-weight:700; }
+  .lang-btn:hover { border-color:var(--brand); }
+  .status { min-height:1.5em; font-size:.95rem; }
+  .ok  { color:var(--ok);  font-weight:700; }
+  .err { color:var(--err); font-weight:700; }
+  .hp { position:absolute; left:-9999px; }
+  #shop.has-value {
+    border-color:var(--brand);
+    box-shadow:0 0 0 3px rgba(227,30,36,.25);
+    background:#FFF5F5; font-weight:600;
+  }
+  .overlay {
+    position:fixed; inset:0;
+    background:rgba(247,248,250,.92);
+    z-index:9999;
+    display:flex; align-items:center; justify-content:center;
+    padding:16px;
+    animation:fadeIn .2s ease both;
+  }
+  .overlay.hidden { display:none; }
+  .overlay-box {
+    background:#fff; border-radius:16px;
+    box-shadow:0 16px 36px rgba(0,0,0,.18);
+    padding:28px; max-width:720px; width:100%;
+    animation:popIn .18s ease both;
+  }
+  .overlay-title { margin:.2rem 0 .6rem; color:var(--brand); font-size:1.3rem; }
+  .overlay-body { color:var(--ink); line-height:1.6; text-align:justify; }
+  .overlay-body p + p { margin-top:.75rem; }
+  .overlay-body a { color:var(--brand); }
+  .overlay-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .overlay-note { color:var(--muted); font-size:.92rem; margin-top:8px; }
+  .lang-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .thanks-box { text-align:center; }
+  .thanks-emoji { font-size:54px; line-height:1; margin-bottom:.5rem; }
+  .thanks-title { color:var(--brand); font-size:1.4rem; margin:.2rem 0 .5rem; }
+  .thanks-sub { color:var(--muted); font-size:1rem; }
+  #loadingScreen {
+    position:fixed; inset:0; background:#fff;
+    z-index:99999;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:16px;
+  }
+  #loadingScreen.hidden { display:none; }
+  .spinner {
+    width:40px; height:40px;
+    border:4px solid #FEE2E2;
+    border-top-color:var(--brand);
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+  }
+  .loading-text { color:var(--muted); font-size:.95rem; font-weight:500; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  @keyframes popIn  { from{transform:scale(.96);opacity:0} to{transform:scale(1);opacity:1} }
+  @keyframes spin   { to{transform:rotate(360deg)} }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loadingScreen">
+  <img src="https://drive.google.com/thumbnail?id=1oa-O7ECYTDcL_juX0j9n87bATFJonU9z&sz=w400"
+       alt="TRADEX" style="max-width:140px;height:auto;"
+       onerror="this.style.display='none'">
+  <div class="spinner"></div>
+  <div class="loading-text">Chargement…</div>
+</div>
+
+<!-- LANGUE -->
+<div id="langSelect" class="overlay hidden" role="dialog" aria-modal="true">
+  <div class="overlay-box">
+    <h2 class="overlay-title">Choisissez votre langue / Choose your language</h2>
+    <div class="overlay-body">
+      <div class="lang-grid">
+        <button id="chooseFR" class="lang-btn">🇫🇷 Français</button>
+        <button id="chooseEN" class="lang-btn">🇬🇧 English</button>
+      </div>
+      <div class="overlay-note" style="margin-top:14px">Vous pourrez changer plus tard si besoin.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DISCLAIMER -->
+<div id="disclaimer" class="overlay hidden" role="dialog" aria-modal="true">
+  <div class="overlay-box">
+    <h2 id="discTitle" class="overlay-title">Avant de commencer</h2>
+    <div class="overlay-body" id="discBody"></div>
+    <label style="display:flex;align-items:center;gap:.5rem;margin-top:12px;font-weight:500;">
+      <input type="checkbox" id="dontAsk">
+      <span id="discDontask">Ne pas me redemander pendant 30 jours</span>
+    </label>
+    <div class="overlay-actions">
+      <button id="discContinue" class="primary">J'ai compris, continuer</button>
+      <button id="discDecline" class="lang-btn">Je refuse</button>
+    </div>
+    <div class="overlay-note" id="discNote">En cas de refus, le formulaire ne sera pas affiché.</div>
+  </div>
+</div>
+
+<!-- REMERCIEMENTS -->
+<div id="thankyou" class="overlay hidden" aria-live="polite">
+  <div class="overlay-box thanks-box">
+    <div class="thanks-emoji">✅</div>
+    <h2 class="thanks-title" id="thanksTitle">Merci pour votre évaluation !</h2>
+    <p class="thanks-sub" id="thanksSub">Votre avis a bien été enregistré.</p>
+  </div>
+</div>
+
+<!-- FORMULAIRE -->
+<div class="wrap">
+  <div class="header">
+    <div class="header-logo">
+      <img id="tradexLogo"
+           src="https://drive.google.com/thumbnail?id=1oa-O7ECYTDcL_juX0j9n87bATFJonU9z&sz=w400"
+           alt="TRADEX Logo" loading="eager" decoding="async"
+           onerror="if(!this.dataset.tried){this.dataset.tried='1';this.src='https://drive.google.com/uc?export=view&id=1oa-O7ECYTDcL_juX0j9n87bATFJonU9z';}else{this.replaceWith(Object.assign(document.createElement('div'),{textContent:'TRADEX',style:'font-weight:700;font-size:20px;color:#E31E24'}));}">
+    </div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="brand-title">
+      <h1 id="formTitle">Fiche d'évaluation boutique</h1>
+      <span class="badge">TRADEX</span>
+    </div>
+    <p class="hint" id="hintTop">Répondez à chaque question en attribuant une note de 1★ à 5★. Les champs * sont requis.</p>
+
+    <form id="form" novalidate>
+      <div class="grid grid-2" style="margin-top:12px;">
+        <div>
+          <label for="shop" id="labelShop">Boutique *</label>
+          <select id="shop" required>
+            <option value="">Sélectionner…</option>
+            <option>AHALA</option><option>BANDJOUN</option><option>BASTOS</option>
+            <option>BEKA</option><option>BONAMOUSSADI</option><option>BONENDALE</option>
+            <option>BONIS</option><option>BOSSIGUI</option><option>BUEA</option>
+            <option>DOMAYO</option><option>EBOLOWA I</option><option>EDEA 1</option>
+            <option>EDEA2-AMOUR</option><option>EMANA</option><option>GAROUA MARCHE</option>
+            <option>KAELE</option><option>KAMKOP</option><option>KANO</option>
+            <option>KRIBI-NGOYE</option><option>KOTTO</option><option>LIMBE</option>
+            <option>MAKEPE</option><option>MBALLA 2</option><option>MBALMAYO</option>
+            <option>MIMBOMAN</option><option>MISSOLE</option><option>MVOLYE</option>
+            <option>NDOKOTI</option><option>NKOLFOULOU</option><option>NKOLMETET</option>
+            <option>NKOLOTOU OTOU</option><option>NOMAYOS</option><option>NSIMALEN</option>
+            <option>OBILI</option><option>OYOMABANG</option><option>PK10</option>
+            <option>POUMA</option><option>SANGMELIMA</option>
+            <option>SHOWROOM LUBES OLEMBE</option><option>SHOWROOM LUBES RHONE POULENC</option>
+            <option>TOMBEL</option><option>YADEME</option><option>YAGOUA</option>
+            <option>YASSA</option><option>YOUPWE 2</option>
+          </select>
+        </div>
+        <div>
+          <label for="visit_at" id="labelDate">Date de passage *</label>
+          <input id="visit_at" type="date" required>
+        </div>
+      </div>
+
+      <div class="divider" style="margin-top:16px;"></div>
+      <div class="section-title" id="questionsTitle">Questions (répondez par des étoiles)</div>
+      <p class="hint" id="scaleHint" style="margin-bottom:10px;">1 = Mauvais · 2 = Insuffisant · 3 = Correct · 4 = Bon · 5 = Excellent</p>
+
+      <div class="grid">
+        <div class="crit">
+          <div id="q_courtesy">Comment évaluez-vous <strong>l'accueil et la courtoisie</strong> du personnel ?</div>
+          <div class="stars" data-key="courtesy"></div>
+        </div>
+        <div class="crit">
+          <div id="q_cleanliness">Comment jugez-vous la <strong>propreté</strong> de la boutique ?</div>
+          <div class="stars" data-key="cleanliness"></div>
+        </div>
+        <div class="crit">
+          <div id="q_organization">Comment jugez-vous <strong>l'organisation</strong> de la boutique ?</div>
+          <div class="stars" data-key="organization"></div>
+        </div>
+        <div class="crit">
+          <div id="q_avail">La <strong>disponibilité des produits</strong> vous a-t-elle satisfait(e) ?</div>
+          <div class="stars" data-key="availability"></div>
+        </div>
+        <div class="crit">
+          <div id="q_speed">Êtes-vous satisfait(e) de la <strong>rapidité en caisse</strong> ?</div>
+          <div class="stars" data-key="speed"></div>
+        </div>
+        <div class="crit">
+          <div id="q_overall">Globalement, quelle note donneriez-vous à votre <strong>expérience dans cette boutique</strong> ?</div>
+          <div class="stars" data-key="overall"></div>
+        </div>
+      </div>
+
+      <label for="comment" class="section-title" id="labelComment" style="margin-top:14px;">Commentaire (facultatif)</label>
+      <textarea id="comment" placeholder="Un détail à signaler ?"></textarea>
+
+      <div class="divider"></div>
+
+      <div class="section-title" id="contactTitle">Vos coordonnées</div>
+      <div class="grid grid-2" style="margin-top:8px;">
+        <div>
+          <label for="firstname" id="labelFirstname">Prénom *</label>
+          <input id="firstname" type="text" placeholder="Jean" required>
+        </div>
+        <div>
+          <label for="lastname" id="labelLastname">Nom *</label>
+          <input id="lastname" type="text" placeholder="DUPONT" required>
+        </div>
+      </div>
+      <div class="grid grid-2" style="margin-top:8px;">
+        <div>
+          <label for="contact" id="labelContact">Souhaitez-vous être recontacté(e) ?</label>
+          <select id="contact">
+            <option>Non</option>
+            <option>Oui</option>
+          </select>
+        </div>
+        <div>
+          <label for="phone" id="labelPhone">Téléphone *</label>
+          <input id="phone" type="tel" inputmode="tel" placeholder="+237 …" required>
+        </div>
+      </div>
+
+      <input class="hp" id="hp" autocomplete="off" tabindex="-1">
+
+      <div class="actions" style="margin-top:16px;">
+        <button type="submit" class="primary" id="submitBtn">
+          <span class="btn-label">Envoyer mon évaluation</span>
+        </button>
+        <div id="status" class="status" aria-live="polite" role="alert"></div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// ── URL APPS SCRIPT ──
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbySTUvpwPzw6Nr4PJbJ9xp-n00KQLq6xHB_-jbFNrPT0GnIxQYa-ry8JtBLZvRuHZr8qA/exec';
+
+// ── I18N ──
+var I18N = {
+  fr: {
+    html_lang:"fr", title:"Évaluation boutique TRADEX",
+    form_title:"Fiche d'évaluation boutique",
+    hint_top:"Répondez à chaque question en attribuant une note de 1★ à 5★. Les champs * sont requis.",
+    label_shop:"Boutique *", label_date:"Date de passage *", option_select:"Sélectionner…",
+    questions_title:"Questions (répondez par des étoiles)",
+    scale:"1 = Mauvais · 2 = Insuffisant · 3 = Correct · 4 = Bon · 5 = Excellent",
+    q_courtesy:    "Comment évaluez-vous <strong>l'accueil et la courtoisie</strong> du personnel ?",
+    q_cleanliness: "Comment jugez-vous la <strong>propreté</strong> de la boutique ?",
+    q_organization:"Comment jugez-vous <strong>l'organisation</strong> de la boutique ?",
+    q_avail:       "La <strong>disponibilité des produits</strong> vous a-t-elle satisfait(e) ?",
+    q_speed:       "Êtes-vous satisfait(e) de la <strong>rapidité en caisse</strong> ?",
+    q_overall:     "Globalement, quelle note donneriez-vous à votre <strong>expérience dans cette boutique</strong> ?",
+    label_comment:"Commentaire (facultatif)", comment_ph:"Un détail à signaler ?",
+    contact_title:"Vos coordonnées",
+    label_firstname:"Prénom *", label_lastname:"Nom *",
+    label_contact:"Souhaitez-vous être recontacté(e) ?", label_phone:"Téléphone *",
+    btn_submit:"Envoyer mon évaluation",
+    thanks_title:"Merci pour votre évaluation !", thanks_sub:"Votre avis a bien été enregistré.",
+    disc_title:"Avant de commencer",
+    disc_body:"<p>En répondant à cette enquête, vous acceptez que vos réponses soient transmises à <strong>TRADEX</strong> dans un but d'amélioration de sa qualité de service. Les informations recueillies sont destinées à TRADEX à des fins de gestion, de statistiques et de prospection commerciale.</p><p>Conformément au droit applicable, vous disposez des droits d'accès, de rectification, d'opposition et d'effacement, que vous pouvez exercer en envoyant un mail à : <a href='mailto:tradex@tradexsa.com'>tradex@tradexsa.com</a>.</p>",
+    disc_dontask:"Ne pas me redemander pendant 30 jours",
+    disc_continue:"J'ai compris, continuer", disc_decline:"Je refuse",
+    disc_note:"En cas de refus, le formulaire ne sera pas affiché.",
+    err_prefix:"Veuillez compléter : ",
+    f_shop:"Boutique", f_date:"Date", f_firstname:"Prénom", f_lastname:"Nom",
+    f_stars:"Toutes les notes (étoiles)", f_phone:"Téléphone",
+    contact_no:"Non", contact_yes:"Oui",
+    sending:"Envoi en cours…", err_send:"Échec de l'envoi. Veuillez réessayer.",
+    err_doublon:"⚠️ Vous avez déjà évalué cette boutique aujourd'hui.",
+    err_busy:"⚠️ Serveur occupé, réessayez dans quelques secondes.",
+    declined_title:"Merci", declined_body:"Vous avez choisi de ne pas répondre à l'évaluation."
+  },
+  en: {
+    html_lang:"en", title:"TRADEX Store Evaluation",
+    form_title:"Store Evaluation Form",
+    hint_top:"Answer each question by assigning a rating from 1★ to 5★. Fields marked with * are required.",
+    label_shop:"Store *", label_date:"Date of Visit *", option_select:"Select…",
+    questions_title:"Questions (answer with stars)",
+    scale:"1 = Poor · 2 = Insufficient · 3 = Correct · 4 = Good · 5 = Excellent",
+    q_courtesy:    "How would you rate the <strong>welcome and courtesy</strong> of the staff?",
+    q_cleanliness: "How do you judge the <strong>cleanliness</strong> of the store?",
+    q_organization:"How do you judge the <strong>organization</strong> of the store?",
+    q_avail:       "Are you satisfied with the <strong>product availability</strong>?",
+    q_speed:       "Are you satisfied with the <strong>speed at checkout</strong>?",
+    q_overall:     "Overall, what rating would you give your <strong>experience in this store</strong>?",
+    label_comment:"Comments (optional)", comment_ph:"Any details to report?",
+    contact_title:"Your details",
+    label_firstname:"First name *", label_lastname:"Last name *",
+    label_contact:"Would you like to be contacted?", label_phone:"Phone number *",
+    btn_submit:"Submit my evaluation",
+    thanks_title:"Thank you for your evaluation!", thanks_sub:"Your feedback has been recorded.",
+    disc_title:"Before you begin",
+    disc_body:"<p>By responding to this survey, you agree that your answers will be transmitted to <strong>TRADEX</strong> for the purpose of improving its service quality. The information collected is intended for TRADEX for management, statistical and commercial prospecting purposes.</p><p>In accordance with applicable law, you have rights of access, correction, objection and deletion, which you may exercise by sending an email to: <a href='mailto:tradex@tradexsa.com'>tradex@tradexsa.com</a>.</p>",
+    disc_dontask:"Do not ask me again for 30 days",
+    disc_continue:"I understand, continue", disc_decline:"I refuse",
+    disc_note:"If you refuse, the form will not be displayed.",
+    err_prefix:"Please complete: ",
+    f_shop:"Store", f_date:"Date", f_firstname:"First name", f_lastname:"Last name",
+    f_stars:"All ratings (stars)", f_phone:"Phone number",
+    contact_no:"No", contact_yes:"Yes",
+    sending:"Sending…", err_send:"Submission failed. Please try again.",
+    err_doublon:"⚠️ You have already evaluated this store today.",
+    err_busy:"⚠️ Server busy, please retry in a few seconds.",
+    declined_title:"Thank you", declined_body:"You chose not to answer the evaluation."
+  }
+};
+
+var lang = 'fr';
+var DISC_KEY = 'tradex_disc_accepted_at';
+var LANG_KEY = 'tradex_lang';
+
+function safeStorage(a,k,v){
+  try{if(a==='get')return localStorage.getItem(k);if(a==='set')localStorage.setItem(k,v);}catch(e){return null;}
+}
+function getParam(name){
+  try{return new URL(location.href).searchParams.get(name);}catch(e){return null;}
+}
+function normalize(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();
+}
+function setLang(next){
+  lang=next==='en'?'en':'fr';
+  safeStorage('set',LANG_KEY,lang);
+  applyLang();
+  try{var u=new URL(location.href);u.searchParams.set('lang',lang);history.replaceState(null,'',u);}catch(e){}
+}
+function applyLang(){
+  var t=I18N[lang];
+  document.documentElement.lang=t.html_lang;
+  document.title=t.title;
+  document.getElementById('formTitle').textContent=t.form_title;
+  document.getElementById('hintTop').textContent=t.hint_top;
+  document.getElementById('labelShop').textContent=t.label_shop;
+  document.getElementById('labelDate').textContent=t.label_date;
+  document.getElementById('questionsTitle').textContent=t.questions_title;
+  document.getElementById('scaleHint').textContent=t.scale;
+  document.getElementById('labelComment').textContent=t.label_comment;
+  document.getElementById('contactTitle').textContent=t.contact_title;
+  document.getElementById('labelFirstname').textContent=t.label_firstname;
+  document.getElementById('labelLastname').textContent=t.label_lastname;
+  document.getElementById('labelContact').textContent=t.label_contact;
+  document.getElementById('labelPhone').textContent=t.label_phone;
+  document.getElementById('thanksTitle').textContent=t.thanks_title;
+  document.getElementById('thanksSub').textContent=t.thanks_sub;
+  document.getElementById('discTitle').textContent=t.disc_title;
+  document.getElementById('discDontask').textContent=t.disc_dontask;
+  document.getElementById('discContinue').textContent=t.disc_continue;
+  document.getElementById('discDecline').textContent=t.disc_decline;
+  document.getElementById('discNote').textContent=t.disc_note;
+  document.querySelector('.btn-label').textContent=t.btn_submit;
+  document.getElementById('scaleHint').textContent=t.scale;
+  document.getElementById('q_courtesy').innerHTML=t.q_courtesy;
+  document.getElementById('q_cleanliness').innerHTML=t.q_cleanliness;
+  document.getElementById('q_organization').innerHTML=t.q_organization;
+  document.getElementById('q_avail').innerHTML=t.q_avail;
+  document.getElementById('q_speed').innerHTML=t.q_speed;
+  document.getElementById('q_overall').innerHTML=t.q_overall;
+  document.getElementById('discBody').innerHTML=t.disc_body;
+  document.getElementById('comment').placeholder=t.comment_ph;
+  var shopOpt=document.querySelector('#shop option[value=""]');
+  if(shopOpt)shopOpt.textContent=t.option_select;
+  updateContactOptions();
+}
+function updateContactOptions(){
+  var c=document.getElementById('contact');
+  var cur=c.value;
+  var no=I18N[lang].contact_no,yes=I18N[lang].contact_yes;
+  c.innerHTML='<option>'+no+'</option><option>'+yes+'</option>';
+  c.value=(cur==='Oui'||cur==='Yes')?yes:no;
+}
+
+// ── ÉTOILES ──
+function buildStars(){
+  document.querySelectorAll('.stars').forEach(function(g){
+    g.innerHTML='';g.dataset.value='0';
+    for(var i=1;i<=5;i++){
+      (function(val){
+        var b=document.createElement('button');
+        b.type='button';b.className='star';
+        b.dataset.value=String(val);b.title=val+'/5';
+        b.addEventListener('click',function(){
+          selectStar(g,val);
+          b.classList.add('pop');
+          setTimeout(function(){b.classList.remove('pop');},150);
+        });
+        b.addEventListener('keydown',function(e){
+          var cur=Number(g.dataset.value||0);
+          if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();selectStar(g,Math.min(5,cur+1));}
+          if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();selectStar(g,Math.max(1,cur-1));}
+          if(e.key==='Home'){e.preventDefault();selectStar(g,1);}
+          if(e.key==='End'){e.preventDefault();selectStar(g,5);}
+        });
+        g.appendChild(b);
+      })(i);
+    }
+  });
+}
+function selectStar(g,val){
+  g.dataset.value=String(val);
+  g.querySelectorAll('.star').forEach(function(el,idx){
+    el.classList.toggle('active',idx<val);
+  });
+}
+
+// ── OVERLAYS ──
+var langOv  = document.getElementById('langSelect');
+var discOv  = document.getElementById('disclaimer');
+var thankOv = document.getElementById('thankyou');
+var loading = document.getElementById('loadingScreen');
+
+function showDisc(){langOv.classList.add('hidden');discOv.classList.remove('hidden');setTimeout(function(){document.getElementById('discContinue').focus();},50);}
+function hideAll(){langOv.classList.add('hidden');discOv.classList.add('hidden');}
+
+document.getElementById('chooseFR').onclick=function(){setLang('fr');showDisc();};
+document.getElementById('chooseEN').onclick=function(){setLang('en');showDisc();};
+document.getElementById('discContinue').onclick=function(){
+  if(document.getElementById('dontAsk').checked)safeStorage('set',DISC_KEY,String(Date.now()));
+  hideAll();
+  document.getElementById('shop').focus();
+};
+document.getElementById('discDecline').onclick=function(){
+  hideAll();
+  document.getElementById('card').innerHTML=
+    '<div class="overlay-box" style="text-align:center;margin:auto;">'+
+    '<h2 class="overlay-title">'+I18N[lang].declined_title+'</h2>'+
+    '<p class="overlay-body">'+I18N[lang].declined_body+'</p></div>';
+};
+
+// ── BOUTIQUE HIGHLIGHT ──
+var shopEl=document.getElementById('shop');
+shopEl.addEventListener('change',function(){
+  if(shopEl.value)shopEl.classList.add('has-value');
+  else shopEl.classList.remove('has-value');
+});
+
+// ── DATE PAR DÉFAUT ──
+(function(){
+  var d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+  document.getElementById('visit_at').value=d.toISOString().slice(0,10);
+})();
+
+// ── PRÉREMPLIR BOUTIQUE ──
+(function(){
+  var p=getParam('shop');if(!p)return;
+  var wanted=normalize(p);
+  for(var i=0;i<shopEl.options.length;i++){
+    if(normalize(shopEl.options[i].textContent)===wanted){shopEl.value=shopEl.options[i].textContent;break;}
+  }
+  if(shopEl.value)shopEl.classList.add('has-value');
+})();
+
+// ── COLLECT ──
+function collect(){
+  var ratings={};
+  document.querySelectorAll('.stars').forEach(function(g){ratings[g.dataset.key]=Number(g.dataset.value||0);});
+  var vals=Object.values(ratings);
+  var avg=vals.length>0?Math.round((vals.reduce(function(a,b){return a+b;},0)/vals.length)*10)/10:0;
+  return {
+    brand:"TRADEX",lang:lang,
+    shop:document.getElementById('shop').value.trim(),
+    visit_at:document.getElementById('visit_at').value,
+    firstname:document.getElementById('firstname').value.trim(),
+    lastname:document.getElementById('lastname').value.trim(),
+    ratings:ratings,average:avg,
+    comment:document.getElementById('comment').value.trim(),
+    contact:document.getElementById('contact').value,
+    phone:document.getElementById('phone').value.trim(),
+    user_agent:navigator.userAgent,
+    submitted_at:new Date().toISOString(),
+    hp:document.getElementById('hp').value
+  };
+}
+
+// ── SOUMISSION VIA FETCH ──
+var submitBtn=document.getElementById('submitBtn');
+document.getElementById('form').addEventListener('submit',function(e){
+  e.preventDefault();
+  var statusEl=document.getElementById('status');
+  var data=collect();
+  var t=I18N[lang];
+  var missing=[];
+
+  if(!data.shop)      missing.push(t.f_shop);
+  if(!data.visit_at)  missing.push(t.f_date);
+  if(!data.firstname) missing.push(t.f_firstname);
+  if(!data.lastname)  missing.push(t.f_lastname);
+  if(!data.phone)     missing.push(t.f_phone);
+  if(Object.values(data.ratings).some(function(v){return v===0;}))missing.push(t.f_stars);
+
+  if(missing.length>0){
+    statusEl.innerHTML='<span class="err">'+t.err_prefix+missing.join(', ')+'</span>';
+    return;
+  }
+
+  statusEl.innerHTML='<span style="color:var(--muted)">'+t.sending+'</span>';
+  submitBtn.disabled=true;
+
+  fetch(APPS_SCRIPT_URL, {
+    method:'POST',
+    body:JSON.stringify(data)
+  })
+  .then(function(r){return r.json();})
+  .then(function(result){
+    if(result&&result.reason==='doublon'){
+      statusEl.innerHTML='<span class="err">'+t.err_doublon+'</span>';
+      submitBtn.disabled=false;return;
+    }
+    if(result&&result.reason==='busy'){
+      statusEl.innerHTML='<span class="err">'+t.err_busy+'</span>';
+      submitBtn.disabled=false;return;
+    }
+    if(result&&result.ok){
+      document.getElementById('card').style.display='none';
+      thankOv.classList.remove('hidden');
+    } else {
+      statusEl.innerHTML='<span class="err">'+t.err_send+'</span>';
+      submitBtn.disabled=false;
+    }
+  })
+  .catch(function(err){
+    console.error('fetch error:',err);
+    statusEl.innerHTML='<span class="err">'+t.err_send+'</span>';
+    submitBtn.disabled=false;
+  });
+});
+
+// ── BOOT ──
+(function boot(){
+  buildStars();
+  setTimeout(function(){if(loading)loading.classList.add('hidden');},1200);
+
+  var paramLang=(getParam('lang')||'').toLowerCase();
+  var stored=safeStorage('get',LANG_KEY)||'';
+  var useLang=(paramLang==='fr'||paramLang==='en')?paramLang:(stored==='fr'||stored==='en')?stored:null;
+
+  if(useLang){
+    setLang(useLang);
+    var saved=safeStorage('get',DISC_KEY);
+    var expired=!saved||(Date.now()-Number(saved))>=2592000000;
+    if(expired)showDisc();
+    else{hideAll();document.getElementById('shop').focus();}
+  } else {
+    applyLang();
+    langOv.classList.remove('hidden');
+  }
+
+  if(shopEl.value)shopEl.classList.add('has-value');
+})();
+</script>
+</body>
+</html>
